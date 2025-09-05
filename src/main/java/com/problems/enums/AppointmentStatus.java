@@ -1,12 +1,15 @@
-package com.problems.entity;
+package com.problems.enums;
 
 public enum AppointmentStatus {
     BOOKED("Booked"),
-    CANCELLED("Cancelled"),
-    WHITELISTED("Whitelisted");
+    CANCELLED("Cancelled");
 
-    private String value;
-    AppointmentStatus(String value) {
-        this.value = value;
+    private final String name;
+    AppointmentStatus(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 }

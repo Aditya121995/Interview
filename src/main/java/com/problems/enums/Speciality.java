@@ -1,4 +1,4 @@
-package com.problems.entity;
+package com.problems.enums;
 
 public enum Speciality {
     CARDIOLOGIST("Cardiologist"),
