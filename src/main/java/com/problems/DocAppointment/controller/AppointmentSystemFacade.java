@@ -6,7 +6,6 @@ import com.problems.DocAppointment.entity.Patient;
 import com.problems.DocAppointment.enums.Speciality;
 import com.problems.DocAppointment.handler.SlotRankingStrategyHandler;
 import com.problems.DocAppointment.repository.*;
-import com.problems.repository.*;
 import com.problems.DocAppointment.service.AppointmentService;
 import com.problems.DocAppointment.service.DoctorService;
 import com.problems.DocAppointment.service.PatientService;
