@@ -1,11 +1,12 @@
 Some problems to practice lld and implementing it for interviewing process. My solutions to the problems here is on my first trial. There is possibility of improvement in design and patterns I've used.
 
 
-DOCTOR APPOINTMENT PROBLEM
+## DOCTOR APPOINTMENT PROBLEM
 
-Problem : 
+Problem : [problem.md](src/main/java/com/problems/DocAppointment/problem.md)
 
 Solution :
+```
 ┌─────────────────────────┐    ┌──────────────────────────────┐    ┌─────────────────────────┐
 │       TimeSlot          │    │          Doctor              │    │        Patient          │
 ├─────────────────────────┤    ├──────────────────────────────┤    ├─────────────────────────┤
@@ -142,3 +143,4 @@ Solution :
 │ + findWaitListByDoctorSlot│    └───────────────────────────┘
 │ + findWaitListOrderBy...  │
 └───────────────────────────┘
+```
