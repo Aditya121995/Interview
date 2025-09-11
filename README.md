@@ -3,7 +3,7 @@ Some problems to practice lld and implementing it for interviewing process. My s
 
 ## DOCTOR APPOINTMENT PROBLEM
 
-Problem : [problem.md](src/main/java/com/problems/DocAppointment/problem.md)
+Problem : [problem.md](src/main/java/com/problems/docAppointment/problem.md)
 
 Solution :
 ```
