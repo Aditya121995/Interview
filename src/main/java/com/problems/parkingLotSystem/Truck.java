@@ -1,4 +1,7 @@
 package com.problems.parkingLotSystem;
 
-public class Truck {
+public class Truck extends Vehicle {
+    public Truck(String vehicleNumber) {
+        super(vehicleNumber, VehicleType.TRUCK);
+    }
 }

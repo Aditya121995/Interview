@@ -1,4 +1,5 @@
 package com.problems.parkingLotSystem;
 
-public class VehicleType {
+public enum VehicleType {
+    CAR, TRUCK, BIKE
 }

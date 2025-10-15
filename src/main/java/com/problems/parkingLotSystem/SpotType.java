@@ -1,4 +1,5 @@
 package com.problems.parkingLotSystem;
 
-public class SpotType {
+public enum SpotType {
+    SMALL, MEDIUM, LARGE
 }
