@@ -30,7 +30,7 @@ public class MeetingRoom {
 
     public synchronized boolean isAvailable(TimeInterval interval) {
         for (Meeting meeting : meetings) {
-            if (meeting.getTimeInterval().isOverlap(interval)) {
+            if (meeting.getMeetingStatus().equals(MeetingStatus.SCHEDULED) && meeting.getTimeInterval().isOverlap(interval)) {
                 return false;
             }
         }
