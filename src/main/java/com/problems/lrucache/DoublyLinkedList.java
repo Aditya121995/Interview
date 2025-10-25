@@ -36,7 +36,7 @@ public class DoublyLinkedList<K, V> {
     }
 
     public Node<K, V> removeLast() {
-        if (head == tail) {
+        if (head.getNext() == tail) {
             return null;
         }
         Node<K, V> node = tail.getPrevious();
@@ -45,7 +45,7 @@ public class DoublyLinkedList<K, V> {
     }
 
     public boolean isEmpty() {
-        return head == tail;
+        return head.getNext() == tail;
     }
 
 }
