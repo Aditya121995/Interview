@@ -55,6 +55,8 @@ public class Topic {
             return;
         }
 
+        topicSubscriber.resetOffset(newOffset);
+
         for (int i=newOffset; i<messageStore.size(); i++) {
             topicSubscriber.consume(messageStore.get(i));
         }

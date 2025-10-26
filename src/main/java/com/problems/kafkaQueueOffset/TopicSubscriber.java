@@ -56,4 +56,9 @@ public class TopicSubscriber {
     public int getOffset() {
         return offset.get();
     }
+
+    public void resetOffset(int newOffset) {
+        messageQueue.clear();
+        offset.set(newOffset);
+    }
 }
