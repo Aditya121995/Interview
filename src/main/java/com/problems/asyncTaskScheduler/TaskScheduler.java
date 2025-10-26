@@ -12,14 +12,14 @@ public class TaskScheduler {
     private final Map<String, List<String>> dependencyGraph;
     private final Map<String, Integer> indegree;
     private final Queue<Task> readyQueue;
-    private final ExecutorService executor;
+    private final CustomThreadPool executor;
 
     private TaskScheduler(int threadPoolSize) {
         tasks = new ConcurrentHashMap<>();
         dependencyGraph = new ConcurrentHashMap<>();
         indegree = new ConcurrentHashMap<>();
         readyQueue = new ConcurrentLinkedQueue<>();
-        executor = Executors.newFixedThreadPool(threadPoolSize);
+        executor = new CustomThreadPool(threadPoolSize);
     }
 
     public static synchronized TaskScheduler getInstance(int threadPoolSize) {
@@ -62,7 +62,7 @@ public class TaskScheduler {
                 });
             }
 
-            Thread.sleep(100);
+//            Thread.sleep(100);
         }
 
         latch.await();
