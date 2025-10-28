@@ -34,6 +34,9 @@ public class OrderService implements PaymentObserver {
         for (CartItem cartItem : cart.getCartItems()) {
             InventoryReservation reservation = inventoryService
                     .reserveInventory(order.getOrderId(), cartItem.getProduct().getProductId(), cartItem.getQuantity());
+            if (reservation == null) {
+                continue;
+            }
             order.addReservation(reservation.getReservationId());
 
             OrderItem orderItem = new OrderItem(cartItem.getProduct(), cartItem.getQuantity(),
@@ -41,6 +44,13 @@ public class OrderService implements PaymentObserver {
             order.addItem(orderItem);
 
             totalAmount += orderItem.getQuantity() * orderItem.getPrice();
+        }
+
+        if (order.getItems().isEmpty()) {
+            order.setStatus(OrderStatus.CANCELLED);
+            orders.put(order.getOrderId(),  order);
+            user.addOrder(order);
+            return null;
         }
 
         order.setTotalAmount(totalAmount);

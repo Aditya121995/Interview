@@ -1,7 +1,14 @@
 package com.problems.inventoryManagement;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Demo {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         InventoryManagementSystem inventoryManagementSystem = new InventoryManagementSystem();
 
         User u1 = new User("u1", "Aditya", "adi@gmail.com");
@@ -21,7 +28,7 @@ public class Demo {
                 2500.0, ProductCategory.CLOTHES);
 
 
-        inventoryManagementSystem.addProduct(p1, 10);
+        inventoryManagementSystem.addProduct(p1, 4);
         inventoryManagementSystem.addProduct(p2, 5);
         inventoryManagementSystem.addProduct(p3, 3);
         inventoryManagementSystem.addProduct(p4, 4);
@@ -43,5 +50,35 @@ public class Demo {
 
         System.out.println("........order details .......");
         inventoryManagementSystem.getOrder(order.getOrderId());
+
+
+        List<User> userList = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            User user = new User("ConcUser-" + i, "User" + i, "User"+i+"@gmail.com");
+            userList.add(user);
+            inventoryManagementSystem.addToCart(user, p1, 1);
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        CountDownLatch countDownLatch = new CountDownLatch(5);
+
+        for (User user : userList) {
+            executor.submit(()->{
+                try {
+                    Order ord = inventoryManagementSystem.placeOrder(user, PaymentMethod.UPI);
+                    if (ord.getPayment() != null) {
+                        inventoryManagementSystem.processPayment(ord.getPayment().getPaymentId());
+                        inventoryManagementSystem.getOrder(ord.getOrderId());
+                    }
+                } finally {
+                    countDownLatch.countDown();
+                }
+
+            });
+        }
+
+        countDownLatch.await();
+        executor.shutdown();
     }
 }

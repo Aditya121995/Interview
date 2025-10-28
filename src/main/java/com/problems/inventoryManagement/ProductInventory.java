@@ -2,42 +2,66 @@ package com.problems.inventoryManagement;
 
 import lombok.Getter;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 @Getter
 public class ProductInventory {
     private final String productId;
     private int totalQuantity;
     private int reservedQuantity;
     private int availableQuantity;
+    private final ReentrantLock lock;
 
     public ProductInventory(String productId, int quantity) {
         this.productId = productId;
         this.totalQuantity = quantity;
         this.reservedQuantity = 0;
         this.availableQuantity = quantity;
+        this.lock = new ReentrantLock();
     }
 
     public void addQuantity(int quantity) {
-        this.totalQuantity += quantity;
-        this.availableQuantity += quantity;
+        lock.lock();
+        try {
+            this.totalQuantity += quantity;
+            this.availableQuantity += quantity;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public boolean reserveQuantity(int quantity) {
-        if (quantity <= totalQuantity) {
-            availableQuantity -= quantity;
-            reservedQuantity += quantity;
-            return true;
-        }
+        lock.lock();
+        try {
+            if (quantity <= availableQuantity) {
+                availableQuantity -= quantity;
+                reservedQuantity += quantity;
+                return true;
+            }
 
-        return false;
+            return false;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void confirmReservation(int quantity) {
-        totalQuantity -= quantity;
-        reservedQuantity -= quantity;
+        lock.lock();
+        try {
+            totalQuantity -= quantity;
+            reservedQuantity -= quantity;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void releaseReservation(int quantity) {
-        availableQuantity += quantity;
-        reservedQuantity -= quantity;
+        lock.lock();
+        try {
+            availableQuantity += quantity;
+            reservedQuantity -= quantity;
+        } finally {
+            lock.unlock();
+        }
     }
 }

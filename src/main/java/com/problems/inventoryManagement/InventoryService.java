@@ -34,7 +34,7 @@ public class InventoryService {
         ProductInventory inventory = inventoryMap.get(productId);
 
         if (inventory.reserveQuantity(reservationQuantity)) {
-            System.out.println("Reservation for product " + productId + " success.");
+            System.out.println("Reservation for product " + productId + " success. Available quantity is " + inventory.getAvailableQuantity());
             InventoryReservation inventoryReservation = new InventoryReservation(productId, orderId, reservationQuantity);
             reservationMap.put(inventoryReservation.getReservationId(), inventoryReservation);
             return inventoryReservation;
