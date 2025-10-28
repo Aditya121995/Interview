@@ -9,12 +9,16 @@ public class InventoryManagementSystem {
     private final InventoryService inventoryService;
     private final OrderService orderService;
     private final PaymentService paymentService;
+    private final OrderExpirationService orderExpirationService;
 
     public InventoryManagementSystem() {
         productCatalogueService=new ProductCatalogueService();
         inventoryService=new InventoryService();
         paymentService=new PaymentService();
         orderService = new OrderService(paymentService, inventoryService);
+        paymentService.addPaymentObserver(orderService);
+        this.orderExpirationService = new OrderExpirationService(orderService, inventoryService);
+        orderExpirationService.startExpirationMonitoring();
     }
 
     public void addProduct(Product product, int quantity) {
@@ -54,5 +58,9 @@ public class InventoryManagementSystem {
 
     public void getOrder(String orderId) {
         System.out.println("Order: " + orderService.getOrder(orderId));
+    }
+
+    public void shutDown() {
+        orderExpirationService.shutdown();
     }
 }

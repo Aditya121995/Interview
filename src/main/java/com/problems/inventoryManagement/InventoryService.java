@@ -2,8 +2,10 @@ package com.problems.inventoryManagement;
 
 
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class InventoryService {
     private final Map<String, ProductInventory> inventoryMap;
@@ -51,6 +53,7 @@ public class InventoryService {
             if (inventory != null) {
                 inventory.confirmReservation(inventoryReservation.getReservedQuantity());
                 inventoryReservation.setStatus(ReservationStatus.CONFIRMED);
+                System.out.println("Inventory confirmed for product " + inventoryReservation.getProductId());
             }
         }
     }
@@ -62,7 +65,12 @@ public class InventoryService {
             if (inventory != null) {
                 inventory.releaseReservation(inventoryReservation.getReservedQuantity());
                 inventoryReservation.setStatus(ReservationStatus.RELEASED);
+                System.out.println("Inventory released for product " + inventoryReservation.getProductId());
             }
         }
+    }
+
+    public List<InventoryReservation> getExpiredReservations() {
+        return reservationMap.values().stream().filter(InventoryReservation::isExpired).collect(Collectors.toList());
     }
 }

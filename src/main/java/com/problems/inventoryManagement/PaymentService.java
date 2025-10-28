@@ -38,6 +38,7 @@ public class PaymentService {
         payment.setStatus(status);
 
         for (PaymentObserver observer : paymentObserverList) {
+            System.out.println("Processing Payment " + paymentId);
             observer.onPaymentUpdate(payment);
         }
     }

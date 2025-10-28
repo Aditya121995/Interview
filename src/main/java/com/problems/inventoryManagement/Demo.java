@@ -43,10 +43,13 @@ public class Demo {
         inventoryManagementSystem.addToCart(u1, p1, 1);
         inventoryManagementSystem.addToCart(u1, p2, 1);
         inventoryManagementSystem.addToCart(u1, p5, 10);
+        inventoryManagementSystem.addToCart(u2, p6, 20);
 
         System.out.println("........place order and payment .......");
         Order order = inventoryManagementSystem.placeOrder(u1, PaymentMethod.UPI);
         inventoryManagementSystem.processPayment(order.getPayment().getPaymentId());
+
+        Order orderExp = inventoryManagementSystem.placeOrder(u2, PaymentMethod.DEBIT_CARD);
 
         System.out.println("........order details .......");
         inventoryManagementSystem.getOrder(order.getOrderId());
@@ -80,5 +83,10 @@ public class Demo {
 
         countDownLatch.await();
         executor.shutdown();
+
+
+        Thread.sleep(25000);
+
+        inventoryManagementSystem.shutDown();
     }
 }
