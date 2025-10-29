@@ -1,6 +1,5 @@
 package com.problems.bookMyShow;
 
-import com.problems.carRentalSystem.PaymentMethod;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -11,7 +10,9 @@ public class BookMyShowSystem {
     private final Map<String, Show> showMap;
     private final Map<String, Movie> movieMap;
     private final Map<String, User> userMap;
-    private final BookingManager bookingManager;
+    private final BookingService bookingService;
+    private final PaymentService paymentService;
+    private final BookingExpirationService bookingExpirationService;
 
     public BookMyShowSystem() {
         this.theatreMap=new HashMap<>();
@@ -19,7 +20,11 @@ public class BookMyShowSystem {
         this.showMap=new HashMap<>();
         this.movieMap=new HashMap<>();
         this.userMap=new HashMap<>();
-        this.bookingManager=new BookingManager();
+        this.paymentService =new PaymentService();
+        this.bookingService =new BookingService(paymentService);
+        paymentService.addPaymentObserver(bookingService);
+        this.bookingExpirationService = new BookingExpirationService(bookingService);
+        bookingExpirationService.startBookingExpiryChecker();
     }
 
     public void addUser(User user){
@@ -42,16 +47,17 @@ public class BookMyShowSystem {
         this.cityMap.put(city.getId(), city);
     }
 
-    public Booking createBooking(User user, Show show, List<Seat> seats){
-        return bookingManager.createBooking(user, show, seats);
+    public Booking createBooking(User user, Show show, List<Seat> seats, PaymentMethod paymentMethod){
+        System.out.println("Creating a new booking for seats "+seats);
+        return bookingService.createBooking(user, show, seats, paymentMethod);
     }
 
-    public void payForBooking(String bookingId, PaymentMethod paymentMethod){
-        bookingManager.confirmBooking(bookingId, paymentMethod);
+    public void payForBooking(String paymentId){
+        paymentService.processPayment(paymentId);
     }
 
     public void cancelBooking(String bookingId){
-        bookingManager.cancelBooking(bookingId);
+        bookingService.cancelBooking(bookingId);
     }
 
     public List<Movie> getAllMoviesInCity(String cityId){
@@ -95,6 +101,6 @@ public class BookMyShowSystem {
     }
 
     public void shutDown(){
-        bookingManager.shutdown();
+        bookingExpirationService.shutdown();
     }
 }

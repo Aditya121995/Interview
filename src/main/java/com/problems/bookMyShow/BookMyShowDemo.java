@@ -1,6 +1,5 @@
 package com.problems.bookMyShow;
 
-import com.problems.carRentalSystem.PaymentMethod;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BookMyShowDemo {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         BookMyShowSystem bookMyShowSystem = new BookMyShowSystem();
 
         User u1 = new User("u1", "Aditya", "adi@gmail");
@@ -53,15 +52,15 @@ public class BookMyShowDemo {
 
         Show s1 = new Show("sh1", m1, t1, t1.getScreens().get(0),
                 LocalDateTime.now().plusHours(1), new WeekdayPricingStrategy(), seatPriceMap);
-        Show s2 = new Show("sh2", m1, t4, t1.getScreens().get(0),
+        Show s2 = new Show("sh2", m1, t4, t4.getScreens().get(0),
                 LocalDateTime.now().plusHours(5), new WeekdayPricingStrategy(), seatPriceMap);
-        Show s3 = new Show("sh3", m1, t3, t1.getScreens().get(0),
+        Show s3 = new Show("sh3", m1, t3, t3.getScreens().get(0),
                 LocalDateTime.now().plusHours(10), new WeekdayPricingStrategy(), seatPriceMap);
-        Show s4 = new Show("sh4", m2, t2, t1.getScreens().get(0),
+        Show s4 = new Show("sh4", m2, t2, t2.getScreens().get(0),
                 LocalDateTime.now().plusHours(1), new WeekdayPricingStrategy(), seatPriceMap);
-        Show s5 = new Show("sh5", m2, t2, t1.getScreens().get(0),
+        Show s5 = new Show("sh5", m2, t2, t2.getScreens().get(0),
                 LocalDateTime.now().plusHours(5), new WeekdayPricingStrategy(), seatPriceMap);
-        Show s6 = new Show("sh6", m3, t2, t1.getScreens().get(0),
+        Show s6 = new Show("sh6", m3, t2, t2.getScreens().get(0),
                 LocalDateTime.now().plusHours(10), new WeekdayPricingStrategy(), seatPriceMap);
 
         bookMyShowSystem.addShow(s1);
@@ -75,12 +74,18 @@ public class BookMyShowDemo {
 
         // book show
         List<Seat> selectedSeats = new ArrayList<>();
-        selectedSeats.add(t1.getScreens().get(0).getSeats().get(0));
-        Booking bk1 = bookMyShowSystem.createBooking(u1, s1, selectedSeats);
+        selectedSeats.add(s1.getSeatMap().get("st1"));
+        Booking bk1 = bookMyShowSystem.createBooking(u1, s1, selectedSeats, PaymentMethod.DEBIT_CARD);
 
-        Booking bk2 = bookMyShowSystem.createBooking(u2, s1, selectedSeats);
-        bookMyShowSystem.payForBooking(bk1.getBookingId(), PaymentMethod.CARD);
-        bookMyShowSystem.cancelBooking(bk1.getBookingId());
+        Booking bk2 = bookMyShowSystem.createBooking(u2, s1, selectedSeats, PaymentMethod.UPI);
+
+        List<Seat> selectedSeats1 = new ArrayList<>();
+        selectedSeats1.add(s2.getSeatMap().get("st2"));
+        Booking bk3 = bookMyShowSystem.createBooking(u2, s1, selectedSeats1, PaymentMethod.UPI);
+        bookMyShowSystem.payForBooking(bk1.getPayment().getPaymentId());
+//        bookMyShowSystem.cancelBooking(bk1.getBookingId());
+
+        Thread.sleep(20000);
 
         bookMyShowSystem.shutDown();
     }

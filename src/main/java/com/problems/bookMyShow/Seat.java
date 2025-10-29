@@ -3,10 +3,12 @@ package com.problems.bookMyShow;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Getter
+@ToString
 public class Seat {
     private final String id;
     private final String seatNumber;
@@ -42,10 +44,12 @@ public class Seat {
     }
 
     public boolean unlock(){
+        System.out.println("Lock released started");
         if(this.status == SeatStatus.LOCKED){
             this.lockExpiry = null;
             this.status = SeatStatus.AVAILABLE;
             this.lockedByUserId = null;
+            System.out.println("Lock released for seat : " + this.seatNumber);
             return true;
         }
 

@@ -1,28 +1,28 @@
 package com.problems.bookMyShow;
 
-import com.problems.carRentalSystem.PaymentMethod;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
+@ToString
 public class Payment {
     private final String paymentId;
-    private PaymentMethod paymentMethod;
-    private final BigDecimal amount;
+    private final String userId;
+    private final String bookingId;
+    private final PaymentMethod paymentMethod;
+    private final double amount;
+    @Setter
     private PaymentStatus status;
 
-    public Payment(BigDecimal amount) {
+    public Payment(String userId, String bookingId, double amount, PaymentMethod paymentMethod) {
+        this.userId = userId;
+        this.bookingId = bookingId;
         this.paymentId = UUID.randomUUID().toString();
-        this.paymentMethod = null;
+        this.paymentMethod = paymentMethod;
         this.amount = amount;
         this.status = PaymentStatus.PENDING;
-    }
-
-    public boolean processPayment(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
-        status = PaymentStatus.SUCCESS;
-        return true;
     }
 }

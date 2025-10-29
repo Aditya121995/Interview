@@ -1,38 +1,30 @@
 package com.problems.bookMyShow;
 
-
-import com.problems.carRentalSystem.PaymentMethod;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
-public class BookingManager {
+public class BookingService implements PaymentObserver {
     private final Map<String, Booking> bookingMap;
-    private final ScheduledExecutorService scheduler;
+    private final PaymentService paymentService;
     private static final int LOCK_DURATION_IN_MINUTES = 10;
 
-    public BookingManager() {
+    public BookingService(PaymentService paymentService) {
         this.bookingMap=new HashMap<>();
-        this.scheduler= Executors.newScheduledThreadPool(1);
-        startLockExpiryChecker();
+        this.paymentService=paymentService;
     }
 
     public Booking getBooking(String id){
         return bookingMap.get(id);
     }
 
-    public Booking createBooking(User user, Show show, List<Seat> seats){
+    public Booking createBooking(User user, Show show, List<Seat> seats, PaymentMethod paymentMethod){
         ReentrantLock lock = show.getLock();
         lock.lock();
         try {
-            // release expired ones first
-            releaseExpiredLocks(show);
 
             // check if all the seats are avaialable
             for(Seat seat:seats){
@@ -49,9 +41,14 @@ public class BookingManager {
             }
 
             double totalAmount = show.getPricingStrategy().calculatePrice(seats);
+            System.out.println("seats :: " + seats);
+            System.out.println("Total amount: " + totalAmount);
 
             // create booking
             Booking booking = new Booking(user, show, seats, totalAmount);
+            Payment payment = paymentService.initiatePayment(user.getId(), booking.getBookingId(),
+                    booking.getTotalAmount(), paymentMethod);
+            booking.setPayment(payment);
             bookingMap.put(booking.getBookingId(), booking);
 
             System.out.println("Booking " + booking.getBookingId() + " has been created.");
@@ -62,41 +59,42 @@ public class BookingManager {
         }
     }
 
-    public boolean confirmBooking(String bookingId, PaymentMethod paymentMethod) {
-        Booking booking=bookingMap.get(bookingId);
+    @Override
+    public void onPaymentUpdate(Payment payment) {
+        Booking booking = bookingMap.get(payment.getBookingId());
+        System.out.println("Payment update ::"+ booking);
         if(booking==null ||  !booking.getStatus().equals(BookingStatus.PENDING)){
             System.out.println("Booking " + booking + " has been cancelled/confirmed.");
-            return false;
+            return;
         }
 
         ReentrantLock lock = booking.getShow().getLock();
         lock.lock();
+
         try {
-
-
-            // check all the seats are locked under same user
-            for(Seat seat: booking.getSeats()){
-                if (!seat.getLockedByUserId().equals(booking.getUser().getId())) {
-                    return false;
-                }
-            }
-
-            // make payment and confirm booking
-            booking.confirm(paymentMethod);
-
-            // mark seats booked
-            if (booking.getStatus().equals(BookingStatus.CONFIRMED)) {
-                for(Seat seat: booking.getSeats()){
+            PaymentStatus status = payment.getStatus();
+            if (PaymentStatus.SUCCESS.equals(status)) {
+                // book all seats
+                for (Seat seat : booking.getSeats()) {
                     seat.book();
                 }
 
-                return true;
-            }
+                booking.setStatus(BookingStatus.CONFIRMED);
+                System.out.println("Booking confirmed successfully for seats " + booking.getSeats());
+            } else { // failed
+                // release all reservations
+                for (Seat seat : booking.getSeats()) {
+                    seat.unlock();
+                }
 
-            return false;
+                booking.setStatus(BookingStatus.CANCELLED);
+                System.out.println("Booking cancelled because of payment failure");
+            }
         } finally {
             lock.unlock();
         }
+
+
     }
 
     public boolean cancelBooking(String bookingId) {
@@ -127,47 +125,9 @@ public class BookingManager {
         }
     }
 
-    private void startLockExpiryChecker(){
-        scheduler.scheduleAtFixedRate(() -> {
-            for (Booking booking : bookingMap.values() ) {
-                if (booking.getStatus().equals(BookingStatus.PENDING)) {
-                    ReentrantLock lock = booking.getShow().getLock();
-                    lock.lock();
-                    try {
-
-                        if(releaseExpiredLocks(booking.getShow())) {
-                            booking.expire();
-                        }
-                    }  finally {
-                        lock.unlock();
-                    }
-                }
-            }
-        }, 0, 1, TimeUnit.SECONDS);
-    }
-
-    private boolean releaseExpiredLocks(Show show){
-        boolean releaseed=false;
-        for (Seat seat : show.getSeatMap().values()) {
-            if (seat.isLockExpired()) {
-                seat.unlock();
-                releaseed=true;
-            }
-        }
-
-        return releaseed;
-    }
-
-    public void shutdown(){
-        System.out.println("Shutting down Booking Manager");
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+    public List<Booking> getExpiredAllBookings() {
+        return bookingMap.values().stream()
+                .filter(Booking::isExpired)
+                .collect(Collectors.toList());
     }
 }
