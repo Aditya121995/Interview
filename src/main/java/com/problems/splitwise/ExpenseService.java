@@ -121,7 +121,11 @@ public class ExpenseService {
             return;
         }
 
-        balanceSheet.simplifyDebts(groupId);
+        List<SimplifySettlement> settlements = balanceSheet.simplifyDebts(groupId);
+        for(SimplifySettlement simplifySettlement : settlements){
+            balanceSheet.addBalance(simplifySettlement.getFromUser(), simplifySettlement.getToUser(),
+                    simplifySettlement.getAmount(), groupId);
+        }
     }
 
     private ExpenseSplitStrategy getSplitStrategy(Split split) {

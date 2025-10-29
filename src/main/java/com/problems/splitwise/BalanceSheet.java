@@ -3,10 +3,7 @@ package com.problems.splitwise;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BalanceSheet {
@@ -121,9 +118,9 @@ public class BalanceSheet {
         }
     }
 
-    public synchronized void simplifyDebts(String groupId) {
+    public synchronized List<SimplifySettlement> simplifyDebts(String groupId) {
         if (!groupBalance.containsKey(groupId)){
-            return;
+            return new ArrayList<>();
         }
 
         Map<String, Map<String, Double>> groupBalances = groupBalance.get(groupId);
@@ -150,44 +147,84 @@ public class BalanceSheet {
 
         System.out.println("Debts :: " + debts);
 
-        if (debts.isEmpty()) return;
+        if (debts.isEmpty()) return new ArrayList<>();
 
-        int minTransactions = dfsMinTransactions(debts, 0);
-        System.out.println("Debts simplified! Minimum transactions needed: "
-                + minTransactions);
+        return simplify(debts);
+
+//        int minTransactions = dfsMinTransactions(debts, 0);
+//        System.out.println("Debts simplified! Minimum transactions needed: "
+//                + minTransactions);
     }
 
-    private int dfsMinTransactions(List<DebtEntry> debts, int currentIndex) {
-        while (currentIndex < debts.size() &&
-                Math.abs(debts.size() - currentIndex) <= 0.01) {
-            currentIndex++;
-        }
+    private List<SimplifySettlement> simplify(List<DebtEntry> debts) {
+        // PriorityQueue for creditors (largest positive first)
+        PriorityQueue<DebtEntry> creditors = new PriorityQueue<>((a,b) -> {
+            return Double.compare(b.amount, a.amount);
+        });
 
-        if (currentIndex >= debts.size()-1) {
-            return 0;
-        }
+        // PriorityQueue for debitors (most negative first by absolute value)
+        PriorityQueue<DebtEntry> debitors = new PriorityQueue<>((a,b) -> {
+            return Double.compare(Math.abs(b.amount), Math.abs(a.amount));
+        });
 
-        int minTxns = Integer.MAX_VALUE;
-        DebtEntry currentDebt = debts.get(currentIndex);
-
-        System.out.println("currentIndex: " + currentIndex);
-
-        for (int i=currentIndex+1; i < debts.size(); i++) {
-            DebtEntry otherDebt = debts.get(i);
-
-            if (currentDebt.getAmount()*otherDebt.getAmount() < 0) {
-                otherDebt.amount += currentDebt.getAmount();
-
-                int txnNeeded = dfsMinTransactions(debts, currentIndex+1) + 1;
-                System.out.println("Transactions needed: " + txnNeeded);
-
-                minTxns = Math.min(minTxns, txnNeeded);
-                otherDebt.amount -= currentDebt.getAmount();
+        for (DebtEntry debt : debts) {
+            if (debt.amount < 0) {
+                debitors.add(debt);
+            } else if (debt.amount > 0) {
+                creditors.add(debt);
             }
         }
 
-        return minTxns;
+        List<SimplifySettlement> result = new ArrayList<>();
+        while (!creditors.isEmpty() && !debitors.isEmpty()) {
+            DebtEntry cred = creditors.poll();
+            DebtEntry debt = debitors.poll();
+
+            double settlementAmount = Math.min(-1*debt.amount, cred.amount);
+            result.add(new SimplifySettlement(debt.getUserId(), cred.getUserId(), settlementAmount));
+
+            double credLeft = cred.amount - settlementAmount;
+            double debLeft = debt.amount + settlementAmount;
+
+            if (credLeft > 0) creditors.add(new DebtEntry(cred.getUserId(), credLeft));
+            if (debLeft < 0) debitors.add(new DebtEntry(debt.getUserId(), debLeft));
+        }
+
+        return result;
+
     }
+
+//    private int dfsMinTransactions(List<DebtEntry> debts, int currentIndex) {
+//        while (currentIndex < debts.size() &&
+//                Math.abs(debts.size() - currentIndex) <= 0.01) {
+//            currentIndex++;
+//        }
+//
+//        if (currentIndex >= debts.size()-1) {
+//            return 0;
+//        }
+//
+//        int minTxns = Integer.MAX_VALUE;
+//        DebtEntry currentDebt = debts.get(currentIndex);
+//
+//        System.out.println("currentIndex: " + currentIndex);
+//
+//        for (int i=currentIndex+1; i < debts.size(); i++) {
+//            DebtEntry otherDebt = debts.get(i);
+//
+//            if (currentDebt.getAmount()*otherDebt.getAmount() < 0) {
+//                otherDebt.amount += currentDebt.getAmount();
+//
+//                int txnNeeded = dfsMinTransactions(debts, currentIndex+1) + 1;
+//                System.out.println("Transactions needed: " + txnNeeded);
+//
+//                minTxns = Math.min(minTxns, txnNeeded);
+//                otherDebt.amount -= currentDebt.getAmount();
+//            }
+//        }
+//
+//        return minTxns;
+//    }
 
     @Getter
     @ToString
